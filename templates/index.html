@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMRDA Repayment Report</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- External dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <img src="static/mmrda_logo.png" alt="Left Logo" class="logo left-logo">
+                <h1>MMRDA Repayment Report</h1>
+                <img src="static/En_logo/en_full_black.svg" alt="Right Logo" class="logo right-logo">
+            </div>
+
+            <p>Repayment Projection & Management Report (2025-2056)</p>
+        </header>
+
+        <section class="executive-summary">
+            <h2>Executive Summary</h2>
+            <p>This analysis presents a comprehensive overview of MMRDA's loan repayment obligations spanning from April 2025 to 2056. The data reveals distinct patterns in repayment schedules, with notable peaks occurring primarily in August, February, and March of each year.</p>
+
+            <div class="key-insight">
+                <h3>Key Insights:</h3>
+                <ul style="list-style-type: disc; margin-left: 20px;">
+
+                    <li>Total repayment obligation: <br>
+                        <span id="totalRepayment"><b>₹ {{ total_repayment | safe }} Cr</b></span>
+                    </li>
+                    <li>Annual average repayment: <br>
+                        <span id="avgAnnualRepayment"><b>₹ {{ annual_average_amount | safe }} Cr</b></span>
+                    </li>
+                    <li>Peak repayment period:<br>
+                        <span id="peakPeriod"><b>{{ peak_year | safe }}</b></span> with
+                        <span id="peakAmount"><b>₹ {{ peak_amount | safe }}</b></span>
+                    </li>
+                    <li>Repayment variation:<br>
+                        Base Variation approximately
+                        <span id="growthRate"><b>{{ repayment_growth_percentage | safe }} %</b></span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <div class="tab active" onclick="openTab(event, 'overview')">Overview</div>
+                <div class="tab" onclick="openTab(event, 'annual')">Annual Analysis</div>
+                <div class="tab" onclick="openTab(event, 'risk')">Risk Assessment</div>
+                <div class="tab" onclick="openTab(event, 'recommendations')">Recommendations</div>
+            </div>
+
+            <div id="overview" class="tab-content active">
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Repayment Timeline Overview</h3>
+                        <p>The chart below shows the overall repayment trend across the entire loan period.</p>
+                        <div class="chart-container">
+                            {{ trend_chart_html | safe }}
+                        </div>
+                        <p>From 2025 to 2030, the repayment amount grows steadily from ₹2,515.7 Cr to ₹8,990.2 Cr, marking a phase of financial ramp-up. This growth trend continues into the mid-2030s, stabilizing above ₹9,000 Cr annually between 2031 and 2038. The year 2038 represents the peak of repayment commitments, with a total repayment of ₹9,156.3 Cr—the highest across the entire timeline.</p><br>
+                        <p>Starting in 2039, a gradual decline begins, reflecting a winding down of repayment obligations. This decline becomes sharp after 2042, dropping to ₹6,331.2 Cr in 2043 and further to ₹429.0 Cr by 2049. The final years, from 2050 to 2053, show very minimal repayments, eventually reaching ₹0.0 Cr in 2053, signaling the end of the loan cycle. This pattern aligns with a typical balloon repayment model—larger payments in the middle years with a tapering finish. </p>
+                        <p>It underscores the importance of mid-term financial planning while offering relief in the longer horizon.</p>
+
+                    </div>
+                </div>
+
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Payment Distribution Heat Map</h3>
+                        <p>This heatmap visualizes MMRDA's monthly loan repayment distribution across the years 2025 to 2053. The intensity of color represents the repayment amount, with darker shades indicating higher values.</p>
+                        <div id="heatmapContainer">
+                            {{ repayment_heatmap_html | safe }}
+                        </div>
+                        <h4><b>Key Observations:</b></h4><br>
+                        <p><b>1. Peak repayment activity</b> is concentrated in February, March, and September, consistently across the high-debt years (2030–2038).</p>
+                        <p><b>2. The middle band (2030–2038)</b> shows the most intense repayment burden, aligning with the peak years of the loan schedule.</p>
+                        <p><b>3. Post-2045,</b> the repayment values gradually decrease, with lighter shades indicating a tapering of obligations.</p>
+                        <p><b>4. Minimal repayment activity</b> is seen in November, December, and January, suggesting more flexibility in these months for other financial planning.</p><br>
+                        <h4><i>"This visualization reinforces the need for targeted cash flow planning during specific months to ensure smooth debt servicing during peak years."</i></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div id="annual" class="tab-content">
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Monthly Repayment Trend</h3>
+
+                        <div class="chart-container">
+                            {{ monthly_repayment_chart_html | safe }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Year-Wise Repayment Burden Fluctuation</h3>
+                        <div class="chart-container">
+                            {{ repayment_fluctuation_bar_chart_html | safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="risk" class="tab-content">
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Liquidity Risk Assessment</h3>
+                        <p>The table below identifies periods with high repayment obligations that may require special liquidity management:</p>
+
+                        <div class="table-container">
+                            {{ risk_table_html | safe }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Long-term Risk Profile</h3>
+                        <p>The chart below shows the intensity of repayment obligations across the entire loan period, helping identify years with higher financial pressure.</p>
+                        <div class="chart-container">
+                            {{ long_term_risk_html | safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="recommendations" class="tab-content">
+                <div class="dashboard-row">
+                    <div class="dashboard-card">
+                        <h3>Strategic Recommendations</h3>
+                        <p>Based on MMRDA’s loan repayment trajectory from 2025 to 2053, the following strategies are proposed to ensure long-term fiscal stability, liquidity management, and optimal debt servicing. These recommendations are aligned with institutional financial prudence and scalable planning.</p>
+                        <div class="key-insight">
+                            <h4>1. Structured Reserve Fund Mechanism</h4>
+                            <p>Objective: Protect liquidity during peak repayment years and months.</p><br>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li>Establish a Sinking Fund to accumulate surpluses annually—targeting at least 15–20% of the projected annual repayment.</li>
+                                <li>Initiate early accumulation during low-obligation years (2025–2027 and post-2045) to create financial buffers.</li>
+                                <li>Mandate monthly provisioning, with larger allocations during surplus quarters, specifically in years where repayments are below ₹6,000 Cr.</li>
+                            </ul>
+                        </div>
+
+                        <div class="key-insight">
+                            <h4>2. Dynamic Revenue Stream Synchronization</h4>
+                            <p>Objective: Match inflow peaks with repayment obligations to ease fiscal strain.</p><br>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li>Reschedule revenue collection cycles to front-load collections in Q1 and Q3 to align with February and August repayment peaks.</li>
+                                <li>Integrate predictive cash flow modeling to dynamically reallocate revenue sources based on repayment spikes.</li>
+                                <li><b>Incentivized early payments</b> from revenue-generating entities. Temporary levies or surcharges during high-obligation quarters (with sunset clauses).</li>
+                            </ul>
+                        </div>
+
+                        <div class="key-insight">
+                            <h4>3. Debt Portfolio Rebalancing & Refinancing</h4>
+                            <p>Objective: Optimize loan terms to smoothen repayment curves.</p><br>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li>Evaluate high-burden years (2030–2038) for refinancing or rescheduling opportunities, particularly long-term loans with heavy balloon payments.</li>
+                                <li>Aim for a more linear repayment profile, reducing annual volatility and easing budgetary pressures.</li>
+                                <li>Prioritize: Interest rate negotiations in a low-rate environment and Bond issuance swaps to spread out concentrated obligations.</li>
+                            </ul>
+                        </div>
+
+                        <div class="key-insight">
+                            <h4>4. Tiered Budget Forecasting and Early Warning Triggers</h4>
+                            <p>Objective: Proactively manage repayment risks and optimize fund allocation.</p><br>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li>Introduce rolling quarterly forecasts to monitor repayment-to-revenue ratios.</li>
+                                <li>Allocate contingency provisions in the annual budget, tied to repayment volatility metrics.</li>
+                                <li>Flag any quarter where loan repayments exceed 30% of expected quarterly inflows as a “High Exposure Quarter”,<br>triggering: Emergency liquidity review and temporary spending freeze on non-critical capital projects.</li>
+                            </ul>
+                        </div>
+
+                        <div class="key-insight">
+                            <h4>5. Inter-Departmental Financial Coordination Framework</h4>
+                            <p>Objective: Strengthen institutional readiness for repayment cycles.</p>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li>Create a Loan Servicing Task Force consisting of finance, revenue, and treasury departments.</li>
+                                <li>Hold bi-annual planning workshops to review upcoming obligations and adjust inter-departmental fund flow accordingly.</li>
+                                <li>Integrate repayment schedules into long-term infrastructure and capital investment planning, to avoid overlaps in financial commitments.</li>
+                            </ul>
+                        </div>
+
+                        <div class="key-insight">
+                            <h4>6. Post-2039 Transition Plan</h4>
+                            <p>Objective: Capitalize on declining repayment phase for future investment.</p>
+                            <ul style="list-style-type: disc; margin-left: 20px;">
+                                <li>From 2040 onward, as repayment obligations reduce steadily, reallocate freed fiscal space towards:</li>
+                                <ul style="list-style-type: circle; margin-left: 20px;">
+                                    <li>New strategic infrastructure investments.</li>
+                                    <li>Accelerated loan clearance (early settlement discounts).</li>
+                                    <li>Strengthening internal capital reserves for future borrowing cycles.</li>
+                                </ul>
+                            </ul>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>MMRDA Loan Repayment Analysis Report | Generated on <span id="generationDate">April 7, 2025</span></p>
+            <p>This dashboard provides management-level insights into loan repayment obligations. <br>Data is current as of report generation date.</p>
+        </footer>
+    </div>
+
+<script>
+    function openTab(evt, tabId) {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.style.display = 'none';
+            tab.classList.remove('active');
+        });
+
+        // Remove 'active' class from all tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+
+        // Show the selected tab content
+        const selectedTab = document.getElementById(tabId);
+        selectedTab.style.display = 'block';
+        selectedTab.classList.add('active');
+
+        // Mark the clicked tab as active
+        evt.currentTarget.classList.add('active');
+    }
+
+    // On initial load, show only the first active tab
+    window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        const defaultTab = document.querySelector('.tab-content.active');
+        if (defaultTab) defaultTab.style.display = 'block';
+    });
+
+    window.onbeforeprint = () => {
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.style.display = 'block';
+        });
+    };
+</script>
+
+
+
+</body>
+</html>
